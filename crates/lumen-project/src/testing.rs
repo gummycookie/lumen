@@ -232,7 +232,6 @@ pub fn project_of(name: &str, tracks: Vec<Track>) -> Project {
 /// `events` from `start` to `start + length` (in quarter notes), with the
 /// content repeating every `repeat` quarters when given. Ids count from
 /// `id`: the track, its device, its clip.
-#[allow(clippy::too_many_arguments)]
 pub fn midi_track(
     id: u64,
     name: &str,

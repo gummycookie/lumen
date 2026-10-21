@@ -6,7 +6,7 @@
 use std::io;
 use std::time::Instant;
 
-use super::region::{Answer, FLAG_FLUSH, Layout, Outcome, Region, SubmitError};
+use super::region::{Answer, FLAG_FLUSH, Layout, Outcome, Region, Stamp, SubmitError};
 use super::sys::{Names, Signal};
 use super::{Waiting, Wake};
 use crate::protocol::{Event, ParamQueues};
@@ -123,9 +123,13 @@ impl BlockLink {
             }
         }
         let seq = self.next_seq;
-        let flags = if self.flush_next { FLAG_FLUSH } else { 0 };
+        let stamp = Stamp {
+            seq,
+            generation,
+            flags: if self.flush_next { FLAG_FLUSH } else { 0 },
+        };
         self.region
-            .write_flagged(seq, generation, frames, input, events, params, flags)?;
+            .write_flagged(stamp, frames, input, events, params)?;
         self.flush_next = false;
         self.next_seq += 1;
         self.in_flight = Some(InFlight {

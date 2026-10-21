@@ -11,11 +11,6 @@
 //! only previews while the button is down; the document changes once, on
 //! release, as one undo step.
 
-#![allow(
-    dead_code,
-    reason = "the lane UI is wired in step by step (M5 slice 4b)"
-)]
-
 use std::sync::Arc;
 
 use lumen_core::time::Ticks;

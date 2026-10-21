@@ -30,6 +30,15 @@ const VERSION: u32 = 4;
 /// before it processes this block. Sent by a jump in playback.
 pub const FLAG_FLUSH: u32 = 1;
 
+/// What names a block rather than fills it: its number, the configuration
+/// it was made for and its flags (`FLAG_*`).
+#[derive(Clone, Copy, Debug)]
+pub struct Stamp {
+    pub seq: u64,
+    pub generation: u32,
+    pub flags: u32,
+}
+
 /// The capacity of a block. Fixed when the region is made; a larger need
 /// means a new region, which happens off the audio thread.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -390,21 +399,28 @@ impl Region {
         events: &[Event],
         params: &Q,
     ) -> Result<(), SubmitError> {
-        self.write_flagged(seq, generation, frames, input, events, params, 0)
+        let stamp = Stamp {
+            seq,
+            generation,
+            flags: 0,
+        };
+        self.write_flagged(stamp, frames, input, events, params)
     }
 
     /// As [`Self::write_request`], with block flags ([`FLAG_FLUSH`]).
-    #[allow(clippy::too_many_arguments)]
     pub fn write_flagged<Q: ParamQueues + ?Sized>(
         &self,
-        seq: u64,
-        generation: u32,
+        stamp: Stamp,
         frames: u32,
         input: &[&[f32]],
         events: &[Event],
         params: &Q,
-        flags: u32,
     ) -> Result<(), SubmitError> {
+        let Stamp {
+            seq,
+            generation,
+            flags,
+        } = stamp;
         let layout = &self.layout;
         if frames == 0 || frames > layout.max_frames {
             return Err(SubmitError::Invalid("frame count"));
